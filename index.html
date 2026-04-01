@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tomodachi Life Personality Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --page-bg:     #f2c52c;
+    --row-bg:      #f9efc9;
+    --row-text:    #3d2a08;
+    --row-sub:     #6b4c18;
+    --disclaimer:  #5c3d0e;
+    --result-bg:   #fffdf5;
+    --result-text: #3a2508;
+
+    --font-label:  clamp(13px, 2.8vw, 15px);
+    --font-sub:    clamp(11px, 2.4vw, 13px);
+    --font-note:   clamp(11px, 2.2vw, 12.5px);
+    --font-result: clamp(22px, 5.5vw, 28px);
+    --font-desc:   clamp(13px, 2.8vw, 14px);
+    --font-group:  clamp(15px, 3.2vw, 18px);
+    --font-h1:     clamp(20px, 5vw, 28px);
+
+    --sq-w:        clamp(26px, 5.5vw, 32px);
+    --sq-h:        clamp(24px, 5vw, 30px);
+    --label-w:     clamp(70px, 15vw, 84px);
+    --endpoint-w:  clamp(36px, 8vw, 48px);
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--page-bg);
+    font-family: 'Nunito', sans-serif;
+    padding: clamp(16px, 4vw, 28px);
+    gap: clamp(10px, 2.5vw, 16px);
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: 0.3px;
+  }
+  /* Game title — smaller, white with shadow so it reads on yellow */
+  h1 .line1 {
+    display: block;
+    font-size: clamp(14px, 3.4vw, 19px);
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    letter-spacing: 0.5px;
+  }
+  /* Main purpose — big, dark brown so it contrasts strongly against yellow */
+  h1 .line2 {
+    display: block;
+    font-size: clamp(26px, 6.5vw, 42px);
+    color: #3d1f00;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.12);
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Region selector ─────────────────────────────────────────────────────── */
+  .region-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /*
+   * Inactive = ghost pill: transparent bg, dark brown border & text.
+   * Active   = solid pill: dark brown bg, white text + checkmark.
+   * High contrast on #f2c52c in both states.
+   */
+  .region-btn {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: clamp(12px, 2.6vw, 14px);
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 2.5px solid #5c3200;
+    background: transparent;
+    color: #5c3200;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .region-btn:hover:not(.active) {
+    background: rgba(92, 50, 0, 0.12);
+  }
+  .region-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  /* Active: solid fill, white text, checkmark */
+  .region-btn.active {
+    background: #5c3200;
+    color: #fff;
+    border-color: #5c3200;
+  }
+  .region-btn.active:hover {
+    background: #7a4400;
+    border-color: #7a4400;
+  }
+  /* Checkmark that only shows on active */
+  .region-btn .btn-check {
+    display: none;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .region-btn.active .btn-check { display: block; }
+
+  /* Flag wrapper: thin border so white parts of flags stay visible on any bg */
+  .region-btn .flag {
+    display: inline-block;
+    line-height: 1;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1.5px rgba(0,0,0,0.18);
+  }
+
+  /* ── Rows ────────────────────────────────────────────────────────────────── */
+  .rows-container {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(7px, 1.8vw, 10px);
+    width: 100%;
+    max-width: 580px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    background: var(--row-bg);
+    border-radius: 999px;
+    padding: clamp(7px, 1.8vw, 10px) clamp(12px, 3vw, 20px);
+    gap: clamp(4px, 1.2vw, 7px);
+  }
+
+  .row.disclaimer-row {
+    padding: clamp(9px, 2vw, 12px) clamp(12px, 3vw, 20px);
+    gap: clamp(4px, 1.2vw, 7px);
+    background: #ede3b4;
+  }
+  .disclaimer-text {
+    flex: 1;
+    font-size: var(--font-note);
+    color: var(--disclaimer);
+    font-weight: 700;
+    font-style: italic;
+    text-align: center;
+    padding: 0 clamp(4px, 1vw, 8px);
+  }
+
+  .row-label {
+    font-weight: 800;
+    font-size: var(--font-label);
+    color: var(--row-text);
+    width: var(--label-w);
+    min-width: var(--label-w);
+    flex-shrink: 0;
+  }
+
+  .row-endpoint {
+    font-weight: 700;
+    font-size: var(--font-sub);
+    color: var(--row-sub);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .row-endpoint.left  { width: var(--endpoint-w); min-width: var(--endpoint-w); text-align: right; padding-right: 4px; }
+  .row-endpoint.right { width: var(--endpoint-w); min-width: var(--endpoint-w); text-align: left;  padding-left: 4px; }
+
+  .squares {
+    display: flex;
+    gap: clamp(3px, 0.8vw, 5px);
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .sq {
+    width: var(--sq-w);
+    min-width: var(--sq-w);
+    height: var(--sq-h);
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s, box-shadow 0.12s;
+    flex-shrink: 0;
+  }
+  @media (pointer: coarse) { .sq { min-height: 36px; } }
+  .sq:hover { transform: scale(1.13); box-shadow: 0 2px 8px rgba(0,0,0,0.22); z-index: 2; }
+  .sq:focus-visible { outline: 3px solid #3d2a08; outline-offset: 2px; z-index: 2; }
+  .sq.selected {
+    background-color: #ee4d10 !important;
+    transform: scale(1.12);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+    z-index: 3;
+  }
+  .sq .checkmark { display: none; }
+  .sq.selected .checkmark { display: block; }
+
+  /* ── Result area ─────────────────────────────────────────────────────────── */
+  .result-area {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .prompt-card {
+    background: var(--row-bg);
+    border-radius: 999px;
+    padding: clamp(11px, 2.5vw, 15px) clamp(20px, 5vw, 28px);
+    font-weight: 800;
+    color: var(--row-text);
+    font-size: clamp(13px, 2.8vw, 15px);
+    text-align: center;
+  }
+
+  .result-blob {
+    background: var(--result-bg);
+    border-radius: 48px;
+    padding: clamp(22px, 5vw, 30px) clamp(22px, 5vw, 34px);
+    text-align: center;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.14);
+    overflow: hidden;
+  }
+
+  .result-blob.anim-pop    { animation: popIn    0.32s cubic-bezier(0.34,1.56,0.64,1); }
+  .result-blob.anim-bounce { animation: bounceUD 0.38s ease; }
+
+  @keyframes popIn {
+    0%   { transform: scale(0.82); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes bounceUD {
+    0%   { transform: translateY(0); }
+    22%  { transform: translateY(-6px); }
+    48%  { transform: translateY(4px); }
+    68%  { transform: translateY(-3px); }
+    86%  { transform: translateY(2px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Group pill */
+  .group-pill {
+    display: inline-block;
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: var(--font-group);
+    padding: 5px 26px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    letter-spacing: 0.3px;
+  }
+
+  /* "In a word" / "At a glance" + Traits rows */
+  .group-meta {
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-row {
+    font-size: clamp(12px, 2.6vw, 13.5px);
+    color: var(--result-text);
+    font-weight: 700;
+    line-height: 1.4;
+  }
+  .meta-label {
+    font-weight: 800;
+  }
+
+  /* Personality bubble */
+  .personality-bubble {
+    border-radius: 22px;
+    padding: clamp(13px, 3vw, 18px) clamp(14px, 3.5vw, 22px);
+  }
+
+  .result-type {
+    font-family: 'Fredoka One', cursive;
+    font-size: var(--font-result);
+    color: var(--result-text);
+    margin-bottom: 8px;
+    line-height: 1.15;
+  }
+
+  .result-desc {
+    font-size: var(--font-desc);
+    color: var(--result-text);
+    font-weight: 700;
+    line-height: 1.6;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  /* ── Reduced motion ──────────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .result-blob.anim-pop,
+    .result-blob.anim-bounce { animation: none; }
+    .sq, .region-btn { transition: none; }
+  }
+
+  /* ── Footer / credits ────────────────────────────────────────────────────── */
+  .credits {
+    width: 100%;
+    max-width: 580px;
+    padding: 6px 4px 2px;
+    opacity: 0.72;
+    margin-top: auto;
+  }
+  .credits:hover { opacity: 1; transition: opacity 0.2s; }
+
+  .credits-byline {
+    font-size: 11px;
+    font-weight: 800;
+    color: #5c3200;
+    margin-bottom: 5px;
+  }
+  .credits-heading {
+    font-weight: 800;
+    font-size: 10px;
+    color: #5c3200;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .credits-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .credits-list li {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #5c3200;
+    line-height: 1.55;
+  }
+  .credits-list a {
+    color: #5c3200;
+    text-decoration: underline;
+    text-underline-offset: 1px;
+  }
+  .credits-list a:hover { color: #000; }
+  .credits-list a {
+    color: #5c3200;
+    text-decoration: underline;
+    text-underline-offset: 1px;
+  }
+  .credits-list a:hover { color: #000; }
+  .credits-thanks {
+    margin-top: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #5c3200;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>
+  <span class="line1">Tomodachi Life: Living the Dream</span>
+  <span class="line2">Personality Calculator</span>
+</h1>
+
+<div class="region-bar" id="regionBar" role="group" aria-label="Region selector"></div>
+<div class="rows-container" id="sliders"></div>
+<div class="result-area" id="resultArea" aria-live="polite">
+  <div class="prompt-card">Select a value in each row to see your Mii's personality!</div>
+</div>
+
+<footer class="credits" aria-label="Credits">
+  <p class="credits-byline">Created by cybrrbee</p>
+  <p class="credits-heading">Credits</p>
+  <ul class="credits-list">
+    <li><a href="https://www.reddit.com/r/tomodachilife/comments/1s3y1vf/new_personality_chartguide_for_ltd/" target="_blank" rel="noopener">NEW Personality Chart/Guide for LTD</a> by <a href="https://www.reddit.com/user/PuppyGoji7604/" target="_blank" rel="noopener">u/PuppyGoji7604</a> &amp; <a href="https://www.reddit.com/user/Sparkle-P/" target="_blank" rel="noopener">u/Sparkle-P</a></li>
+    <li><a href="https://www.reddit.com/r/tomodachilife/comments/1s5be9p/personality_guide_charts_us_and_eu/" target="_blank" rel="noopener">Personality Guide Charts (US and EU)</a> by <a href="https://www.reddit.com/user/Mental-Autopsy/" target="_blank" rel="noopener">u/Mental-Autopsy</a></li>
+    <li><a href="https://gamefaqs.gamespot.com/3ds/643013-tomodachi-life/map/11698-personality-calculator" target="_blank" rel="noopener">Tomodachi Life – Guides and FAQs</a> by <a href="https://gamefaqs.gamespot.com/community/reinseiun" target="_blank" rel="noopener">reinseiun</a></li>
+    <li><a href="https://www.youtube.com/watch?v=bmTRX1X6ndE" target="_blank" rel="noopener">How To Get All 16 Personalities In Tomodachi Life: Living The Dream</a> by <a href="https://www.youtube.com/@CrossingChannel" target="_blank" rel="noopener">@CrossingChannel</a></li>
+    <li><a href="https://www.youtube.com/watch?v=VmdDA5ISvv8" target="_blank" rel="noopener">How To Get ALL 16 Personalities in Tomodachi Life: Living The Dream! (American Version)</a> by <a href="https://www.youtube.com/@KawaiiBeth" target="_blank" rel="noopener">@KawaiiBeth</a></li>
+  </ul>
+  <p class="credits-thanks">Special thanks to Pearl &amp; Hugh Morris 🩵</p>
+</footer>
+
+<script>
+// ── Region system ─────────────────────────────────────────────────────────────
+// To add a region: add entry here, add its id key to each row's `endpoints`,
+// each personality's `names` and `descs`, and each group's fields below.
+const REGIONS = [
+  { id: 'uk', flag: '🇬🇧', label: 'UK / AU / NZ' },
+  { id: 'us', flag: '🇺🇸', label: 'US' },
+];
+
+// Label used before the "In a word" value, per region
+const WORD_LABEL = { uk: 'In a word', us: 'At a glance' };
+
+function detectRegion() {
+  try {
+    const tz     = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const locale = navigator.language || '';
+    const isANZ  = /^Australia\//i.test(tz) || /^Pacific\/(Auckland|Chatham|Fiji|Apia)/i.test(tz);
+    const isUK   = /^Europe\/(London|Dublin|Lisbon)/i.test(tz);
+    if (isUK || isANZ) return 'uk';
+    const isUS   = /^America\//i.test(tz) || /^US\//i.test(tz) || /^en-US/i.test(locale);
+    if (isUS) return 'us';
+  } catch(e) {}
+  return 'uk';
+}
+
+let currentRegion = detectRegion();
+
+// ── Group data ────────────────────────────────────────────────────────────────
+// Internal key → display name, color, "In a word" value, traits text per region.
+const GROUP_DATA = {
+  'Easy-going': {
+    color:  '#e7a523',
+    names:  { uk: 'Easy-going',  us: 'Considerate' },
+    word:   { uk: 'Amicable',    us: 'Amicable'    },
+    traits: {
+      uk: 'Thoughtful, honest, innocent. Does things at their own pace.',
+      us: 'Thoughtful, honest, innocent. Does things at their own pace.',
+    },
+  },
+  'Energetic': {
+    color:  '#cf160a',
+    names:  { uk: 'Energetic',   us: 'Outgoing'    },
+    word:   { uk: 'Sociable',    us: 'Sociable'    },
+    traits: {
+      uk: 'Optimistic and passionate. Follows their instincts.',
+      us: 'Optimistic and passionate. Follows their instincts.',
+    },
+  },
+  'Reserved': {
+    color:  '#319533',
+    names:  { uk: 'Reserved',    us: 'Reserved'    },
+    word:   { uk: 'Aloof',       us: 'Aloof'       },
+    traits: {
+      uk: 'Logical, headstrong, cautious. Calmly lays out the facts.',
+      us: 'Logical, tenacious, cautious. Speaks matter-of-factly.',
+    },
+  },
+  'Confident': {
+    color:  '#2152db',
+    names:  { uk: 'Confident',   us: 'Ambitious'   },
+    word:   { uk: 'Self-Assured', us: 'Confident'  },
+    traits: {
+      uk: 'A by-the-book straight-talker. Puts a premium on results.',
+      us: 'A by-the-book straight-talker. Puts a premium on results.',
+    },
+  },
+};
+
+// ── Rows ──────────────────────────────────────────────────────────────────────
+const ROWS = [
+  { id: 'movement', label: 'Movement', leftLabel: 'Slow',    endpoints: { uk: 'Quick',   us: 'Quick'   }, values: [0,1,2,3,4,5,6,7] },
+  { id: 'speech',   label: 'Speech',   leftLabel: 'Polite',  endpoints: { uk: 'Direct',  us: 'Honest'  }, values: [0,1,2,3,5,6,7,8] },
+  { id: 'energy',   label: 'Energy',   leftLabel: 'Flat',    endpoints: { uk: 'Intense', us: 'Varied'  }, values: [0,1,2,3,4,5,6,7] },
+  { id: 'attitude', label: 'Attitude', leftLabel: 'Serious', endpoints: { uk: 'Relaxed', us: 'Chill'   }, values: [0,1,2,3,5,6,7,8] },
+];
+
+const COLORS = ['#88e18f','#9defa4','#b6f4bb','#c9f0cc','#f2c995','#f5b975','#f1a955','#f39c3c'];
+
+// ── Grid ──────────────────────────────────────────────────────────────────────
+const GRID = {
+  lookup(ms, ea) {
+    const col   = Math.min(Math.floor(ms / 4), 3);
+    const eaRow = Math.min(Math.floor(ea / 4), 3);
+    return this.data[col][eaRow];
+  },
+  data: [
+    // M+S 0–3
+    ['Introvert (Observer)',    'Patient (Strategist)',   'Carer (Buddy)',           'Softie (Sweetie)'      ],
+    // M+S 4–7
+    ['Thinker',                 'Perfectionist',          'Dreamer (Daydreamer)',    'Optimist (Cheerleader)'],
+    // M+S 8–11
+    ['Individualist (Rogue)',   'Busy Bee (Achiever)',    'Bubbly (Merrymaker)',     'Charmer'               ],
+    // M+S 12–15
+    ['Headstrong (Maverick)',   'Leader (Visionary)',     'Hot-Blooded (Dynamo)',    'Adventurer (Go-Getter)'],
+  ]
+};
+
+// ── Personality data ──────────────────────────────────────────────────────────
+// descs: { uk, us } — use same string for both where descriptions match.
+const PERSONALITY_DATA = {
+  // ── Easy-going ──────────────────────────────────────────────────────────────
+  'Softie (Sweetie)': {
+    group: 'Easy-going', color: '#f4e8c4',
+    names: { uk: 'Softie',   us: 'Sweetie'  },
+    descs: {
+      uk: 'Sensitive, emotional, and in tune with the feelings of those around them. Empathetic and sentimental.',
+      us: 'Empathetic and sentimental. Sensitive, emotional, and in tune with the feelings of others.',
+    },
+  },
+  'Carer (Buddy)': {
+    group: 'Easy-going', color: '#f5e4a2',
+    names: { uk: 'Carer',    us: 'Buddy'    },
+    descs: {
+      uk: 'Trustworthy and considerate. Puts their friends first and works hard to make sure everyone gets along.',
+      us: 'Trustworthy and considerate. Puts their friends first and works hard to make sure everyone gets along.',
+    },
+  },
+  'Optimist (Cheerleader)': {
+    group: 'Easy-going', color: '#f9f0a0',
+    names: { uk: 'Optimist', us: 'Cheerleader' },
+    descs: {
+      uk: 'Positive, enthusiastic, and always smiling. Smiles not only for their own sake, but to help others smile too.',
+      us: 'Positive, enthusiastic, and always smiling. Beams for their own sake and to help others smile too.',
+    },
+  },
+  'Dreamer (Daydreamer)': {
+    group: 'Easy-going', color: '#f3d5aa',
+    names: { uk: 'Dreamer',  us: 'Daydreamer' },
+    descs: {
+      uk: 'Idealistic and romantic. Often has their head in the clouds, but finds a lot of great ideas up there.',
+      us: 'Idealistic and romantic. Often has their head in the clouds, but finds a lot of great ideas up there.',
+    },
+  },
+
+  // ── Energetic ───────────────────────────────────────────────────────────────
+  'Charmer': {
+    group: 'Energetic', color: '#f3bbca',
+    names: { uk: 'Charmer',      us: 'Charmer'    },
+    descs: {
+      uk: 'Radiant and always on form. Their effortless style is admired by all. Easily adapts to new situations.',
+      us: 'Radiant and always on form. Their effortless style is admired by all. Easily adapts to new situations.',
+    },
+  },
+  'Adventurer (Go-Getter)': {
+    group: 'Energetic', color: '#f0a0a2',
+    names: { uk: 'Adventurer',   us: 'Go-Getter'  },
+    descs: {
+      uk: "Bold and captivating. Their wit and charm lights up a room. It's never a dull moment when they're around!",
+      us: "Bold and captivating. Their wit and charm lights up a room. It's never a dull moment when they're around!",
+    },
+  },
+  'Bubbly (Merrymaker)': {
+    group: 'Energetic', color: '#f2b5aa',
+    names: { uk: 'Bubbly',       us: 'Merrymaker' },
+    descs: {
+      uk: 'Outgoing and pleasant to be around. Makes friends easily, and finds the silver lining to any bad situation.',
+      us: 'Outgoing and pleasant to be around. Makes friends easily, and can turn any bad situation into a good one.',
+    },
+  },
+  'Hot-Blooded (Dynamo)': {
+    group: 'Energetic', color: '#eeae98',
+    names: { uk: 'Hot-Blooded',  us: 'Dynamo'     },
+    descs: {
+      uk: 'Assertive and highly regarded. Trusts their instincts, and easily commands the respect of others.',
+      us: 'Assertive and highly regarded. Trusts their own instincts, and easily commands the respect of others.',
+    },
+  },
+
+  // ── Reserved ────────────────────────────────────────────────────────────────
+  'Patient (Strategist)': {
+    group: 'Reserved', color: '#cceba4',
+    names: { uk: 'Patient',      us: 'Strategist'   },
+    descs: {
+      uk: 'Unique, carefree and creative. Always thinks way outside the box, without worrying what others think.',
+      us: "Unique, carefree, creative, laid-back. They're self-reliant, doing things their own way and thinking outside the box.",
+    },
+  },
+  'Perfectionist': {
+    group: 'Reserved', color: '#ace7be',
+    names: { uk: 'Perfectionist', us: 'Perfectionist' },
+    descs: {
+      uk: 'Imaginative and inspired. Happiest when creating something. Finds beauty in even the smallest details.',
+      us: 'Imaginative and inspired. Happiest when creating something. Finds beauty in everyone and everything.',
+    },
+  },
+  'Introvert (Observer)': {
+    group: 'Reserved', color: '#a9c3b6',
+    names: { uk: 'Introvert',    us: 'Observer'     },
+    descs: {
+      uk: "Self-sufficient and highly individual. Doesn't let their emotions show, but has a lot going on deep down.",
+      us: "Self-sufficient and highly individual. Doesn't show much outward emotion, but has a lot going on deep down.",
+    },
+  },
+  'Thinker': {
+    group: 'Reserved', color: '#aad3a3',
+    names: { uk: 'Thinker',      us: 'Thinker'      },
+    descs: {
+      uk: 'Thoughtful and introspective. Great at thinking things through and analysing issues from every angle.',
+      us: 'Thoughtful and introspective. Great at thinking things through and analyzing issues from every angle.',
+    },
+  },
+
+  // ── Confident ───────────────────────────────────────────────────────────────
+  'Busy Bee (Achiever)': {
+    group: 'Confident', color: '#c0ebef',
+    names: { uk: 'Busy Bee',     us: 'Achiever'   },
+    descs: {
+      uk: 'Diligent, productive, and highly efficient. An excellent planner who always follows through.',
+      us: 'Diligent, productive, and highly efficient. Equally as skilled at planning and executing plans.',
+    },
+  },
+  'Leader (Visionary)': {
+    group: 'Confident', color: '#acc6f0',
+    names: { uk: 'Leader',       us: 'Visionary'  },
+    descs: {
+      uk: 'Ambitious and takes risks. Full of energy and does things on a whim. A force to be reckoned with.',
+      us: "Risk taking and ambitious. Full of energy and acts on many whims. Once they start, they don't stop!",
+    },
+  },
+  'Individualist (Rogue)': {
+    group: 'Confident', color: '#b0b1f1',
+    names: { uk: 'Individualist', us: 'Rogue'     },
+    descs: {
+      uk: 'Intelligent and not afraid to show it. Knowledgeable in a wide range of subjects. Speaks with confidence.',
+      us: 'Intelligent and not afraid to show it. Knowledgeable in a wide range of subjects. Answers with confidence.',
+    },
+  },
+  'Headstrong (Maverick)': {
+    group: 'Confident', color: '#c4b1ee',
+    names: { uk: 'Headstrong',   us: 'Maverick'   },
+    descs: {
+      uk: "A determined self-starter. Cuts their own path, letting nothing stand in their way. Quick to execute plans.",
+      us: "A determined self-starter. Cuts their own path, letting nothing stand in their way. Quick to execute plans.",
+    },
+  },
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getDisplayName(key) {
+  return PERSONALITY_DATA[key].names[currentRegion] ?? PERSONALITY_DATA[key].names.uk;
+}
+function getDesc(key) {
+  return PERSONALITY_DATA[key].descs[currentRegion] ?? PERSONALITY_DATA[key].descs.uk;
+}
+function getGroupData(groupKey) {
+  const g = GROUP_DATA[groupKey];
+  return {
+    color:     g.color,
+    name:      g.names[currentRegion]  ?? g.names.uk,
+    word:      g.word[currentRegion]   ?? g.word.uk,
+    traits:    g.traits[currentRegion] ?? g.traits.uk,
+    wordLabel: WORD_LABEL[currentRegion] ?? WORD_LABEL.uk,
+  };
+}
+function getRightEndpoint(row) {
+  return row.endpoints[currentRegion] ?? row.endpoints.uk;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const selections = {};
+let lastPersonality = null;
+
+// ── Build region bar ──────────────────────────────────────────────────────────
+function buildRegionBar() {
+  const bar = document.getElementById('regionBar');
+  bar.innerHTML = '';
+  REGIONS.forEach(r => {
+    const btn = document.createElement('button');
+    const isActive = r.id === currentRegion;
+    btn.className = 'region-btn' + (isActive ? ' active' : '');
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    // Flag in a bordered wrapper + label text
+    btn.innerHTML = `<span class="flag" aria-hidden="true">${r.flag}</span>${r.label}<svg class="btn-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    btn.addEventListener('click', () => {
+      currentRegion = r.id;
+      buildRegionBar();
+      rebuildEndpoints();
+      updateResult(true);
+    });
+    bar.appendChild(btn);
+  });
+}
+
+// ── Rebuild endpoint labels after region switch ───────────────────────────────
+function rebuildEndpoints() {
+  ROWS.forEach(row => {
+    const rightEl = document.querySelector(`#sq-${row.id}`)
+      ?.closest('.row')
+      ?.querySelector('.row-endpoint.right');
+    if (rightEl) rightEl.textContent = getRightEndpoint(row);
+  });
+}
+
+// ── Build rows ────────────────────────────────────────────────────────────────
+function buildUI() {
+  const container = document.getElementById('sliders');
+  container.innerHTML = '';
+
+  ROWS.forEach(row => {
+    const el = document.createElement('div');
+    el.className = 'row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'row-label';
+    lbl.textContent = row.label;
+    el.appendChild(lbl);
+
+    const minEl = document.createElement('div');
+    minEl.className = 'row-endpoint left';
+    minEl.textContent = row.leftLabel;
+    el.appendChild(minEl);
+
+    const sqWrap = document.createElement('div');
+    sqWrap.className = 'squares';
+    sqWrap.id = `sq-${row.id}`;
+    sqWrap.setAttribute('role', 'radiogroup');
+    sqWrap.setAttribute('aria-label', row.label);
+
+    row.values.forEach((val, i) => {
+      const sq = document.createElement('div');
+      sq.className = 'sq';
+      sq.style.backgroundColor = COLORS[i];
+      sq.dataset.value = val;
+      sq.setAttribute('role', 'radio');
+      sq.setAttribute('aria-checked', 'false');
+      sq.setAttribute('tabindex', '0');
+      sq.setAttribute('aria-label', `${row.label} ${i + 1} of ${row.values.length}`);
+      sq.innerHTML = `<svg class="checkmark" width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+        <path d="M4 9.5l3.2 3.2 6.8-7.4" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      sq.addEventListener('click', () => select(row.id, val, sq, sqWrap));
+      sq.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(row.id, val, sq, sqWrap); }
+      });
+      sqWrap.appendChild(sq);
+    });
+
+    el.appendChild(sqWrap);
+
+    const maxEl = document.createElement('div');
+    maxEl.className = 'row-endpoint right';
+    maxEl.textContent = getRightEndpoint(row);
+    el.appendChild(maxEl);
+
+    container.appendChild(el);
+  });
+
+  // Overall / disclaimer row
+  const disclaimerRow = document.createElement('div');
+  disclaimerRow.className = 'row disclaimer-row';
+
+  const overallLbl = document.createElement('div');
+  overallLbl.className = 'row-label';
+  overallLbl.textContent = 'Overall';
+  disclaimerRow.appendChild(overallLbl);
+
+  const discText = document.createElement('span');
+  discText.className = 'disclaimer-text';
+  discText.textContent = '"Overall" has no effect on personality type.';
+  disclaimerRow.appendChild(discText);
+
+  container.appendChild(disclaimerRow);
+}
+
+// ── Select & update ───────────────────────────────────────────────────────────
+function select(rowId, value, el, sqWrap) {
+  sqWrap.querySelectorAll('.sq').forEach(s => {
+    s.classList.remove('selected');
+    s.setAttribute('aria-checked', 'false');
+  });
+  el.classList.add('selected');
+  el.setAttribute('aria-checked', 'true');
+  selections[rowId] = value;
+  updateResult(false);
+}
+
+function updateResult(forceNewAnim) {
+  const area    = document.getElementById('resultArea');
+  const needed  = ['movement','speech','energy','attitude'];
+  const missing = needed.filter(k => selections[k] === undefined);
+
+  if (missing.length > 0) {
+    area.innerHTML = `<div class="prompt-card">Still need: ${missing.map(id => ROWS.find(r=>r.id===id).label).join(', ')}</div>`;
+    lastPersonality = null;
+    return;
+  }
+
+  const ms          = selections.movement + selections.speech;
+  const ea          = selections.energy   + selections.attitude;
+  const personality = GRID.lookup(ms, ea);
+  const pData       = PERSONALITY_DATA[personality];
+  const gData       = getGroupData(pData.group);
+  const name        = getDisplayName(personality);
+  const desc        = getDesc(personality);
+
+  const personalityChanged = forceNewAnim || (personality !== lastPersonality);
+  lastPersonality = personality;
+
+  area.innerHTML = `
+    <div class="result-blob" id="resultBlob">
+      <div class="group-pill" style="background:${gData.color}">${gData.name}</div>
+      <div class="group-meta">
+        <div class="meta-row"><span class="meta-label">${gData.wordLabel}:</span> ${gData.word}</div>
+        <div class="meta-row"><span class="meta-label">Traits:</span> ${gData.traits}</div>
+      </div>
+      <div class="personality-bubble" style="background:${pData.color}">
+        <div class="result-type">${name}</div>
+        <div class="result-desc">${desc}</div>
+      </div>
+    </div>
+  `;
+
+  requestAnimationFrame(() => {
+    const blob = document.getElementById('resultBlob');
+    if (!blob) return;
+    const cls = personalityChanged ? 'anim-pop' : 'anim-bounce';
+    blob.classList.add(cls);
+    blob.addEventListener('animationend', () => blob.classList.remove(cls), { once: true });
+  });
+}
+
+buildRegionBar();
+buildUI();
+</script>
+</body>
+</html>
