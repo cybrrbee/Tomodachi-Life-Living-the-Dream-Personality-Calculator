@@ -17,30 +17,35 @@
     --result-bg:   #fffdf5;
     --result-text: #3a2508;
 
-    --font-label:  clamp(13px, 2.8vw, 15px);
-    --font-sub:    clamp(11px, 2.4vw, 13px);
-    --font-note:   clamp(11px, 2.2vw, 12.5px);
+    --font-label:  clamp(13px, 3.5vw, 15px);
+    --font-sub:    clamp(10px, 2.6vw, 13px);
+    --font-note:   clamp(10px, 2.4vw, 12.5px);
     --font-result: clamp(22px, 5.5vw, 28px);
-    --font-desc:   clamp(13px, 2.8vw, 14px);
-    --font-group:  clamp(15px, 3.2vw, 18px);
-    --font-h1:     clamp(20px, 5vw, 28px);
+    --font-desc:   clamp(13px, 3vw, 14px);
+    --font-group:  clamp(15px, 3.5vw, 18px);
 
-    --sq-w:        clamp(26px, 5.5vw, 32px);
-    --sq-h:        clamp(24px, 5vw, 30px);
-    --label-w:     clamp(70px, 15vw, 84px);
-    --endpoint-w:  clamp(36px, 8vw, 48px);
+    /* Squares: fit 8 of them comfortably in whatever space remains */
+    --sq-size: clamp(22px, calc((100vw - 220px) / 8), 32px);
+    --label-w: clamp(68px, 18vw, 84px);
   }
+
+  html, body { height: 100%; }
 
   body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* Centre content vertically only on desktop */
     justify-content: center;
     background: var(--page-bg);
     font-family: 'Nunito', sans-serif;
-    padding: clamp(16px, 4vw, 28px);
-    gap: clamp(10px, 2.5vw, 16px);
+    padding: clamp(16px, 4vw, 32px) clamp(14px, 4vw, 28px);
+    gap: clamp(10px, 2.5vw, 14px);
+  }
+  /* On small screens don't force vertical centering — just stack from top */
+  @media (max-height: 700px), (max-width: 480px) {
+    body { justify-content: flex-start; }
   }
 
   h1 {
@@ -135,9 +140,9 @@
   .rows-container {
     display: flex;
     flex-direction: column;
-    gap: clamp(7px, 1.8vw, 10px);
+    gap: clamp(6px, 1.8vw, 10px);
     width: 100%;
-    max-width: 580px;
+    max-width: 560px;
   }
 
   .row {
@@ -145,13 +150,12 @@
     align-items: center;
     background: var(--row-bg);
     border-radius: 999px;
-    padding: clamp(7px, 1.8vw, 10px) clamp(12px, 3vw, 20px);
-    gap: clamp(4px, 1.2vw, 7px);
+    padding: clamp(6px, 1.8vw, 10px) clamp(12px, 3vw, 18px);
+    gap: clamp(4px, 1.2vw, 8px);
   }
 
   .row.disclaimer-row {
-    padding: clamp(9px, 2vw, 12px) clamp(12px, 3vw, 20px);
-    gap: clamp(4px, 1.2vw, 7px);
+    padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 18px);
     background: #ede3b4;
   }
   .disclaimer-text {
@@ -161,7 +165,6 @@
     font-weight: 700;
     font-style: italic;
     text-align: center;
-    padding: 0 clamp(4px, 1vw, 8px);
   }
 
   .row-label {
@@ -180,12 +183,23 @@
     flex-shrink: 0;
     white-space: nowrap;
   }
-  .row-endpoint.left  { width: var(--endpoint-w); min-width: var(--endpoint-w); text-align: right; padding-right: 4px; }
-  .row-endpoint.right { width: var(--endpoint-w); min-width: var(--endpoint-w); text-align: left;  padding-left: 4px; }
+  /* Left label hidden on narrow screens — it's always Slow/Polite/Flat/Serious */
+  .row-endpoint.left {
+    text-align: right;
+    padding-right: 3px;
+  }
+  .row-endpoint.right {
+    text-align: left;
+    padding-left: 3px;
+  }
+  @media (max-width: 420px) {
+    .row-endpoint.left { display: none; }
+    .row-label { width: clamp(58px, 16vw, 72px); min-width: clamp(58px, 16vw, 72px); }
+  }
 
   .squares {
     display: flex;
-    gap: clamp(3px, 0.8vw, 5px);
+    gap: clamp(2px, 0.7vw, 5px);
     flex: 1;
     justify-content: center;
     align-items: center;
@@ -193,10 +207,10 @@
   }
 
   .sq {
-    width: var(--sq-w);
-    min-width: var(--sq-w);
-    height: var(--sq-h);
-    border-radius: 7px;
+    width: var(--sq-size);
+    min-width: var(--sq-size);
+    height: var(--sq-size);
+    border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -204,7 +218,6 @@
     transition: transform 0.12s, box-shadow 0.12s;
     flex-shrink: 0;
   }
-  @media (pointer: coarse) { .sq { min-height: 36px; } }
   .sq:hover { transform: scale(1.13); box-shadow: 0 2px 8px rgba(0,0,0,0.22); z-index: 2; }
   .sq:focus-visible { outline: 3px solid #3d2a08; outline-offset: 2px; z-index: 2; }
   .sq.selected {
@@ -320,57 +333,58 @@
   /* ── Footer / credits ────────────────────────────────────────────────────── */
   .credits {
     width: 100%;
-    max-width: 580px;
-    padding: 6px 4px 2px;
-    opacity: 0.72;
+    max-width: 560px;
+    padding: 8px 4px 4px;
     margin-top: auto;
+    border-top: 1px solid rgba(92,50,0,0.18);
   }
-  .credits:hover { opacity: 1; transition: opacity 0.2s; }
 
-  .credits-byline {
-    font-size: 11px;
-    font-weight: 800;
-    color: #5c3200;
-    margin-bottom: 5px;
-  }
-  .credits-heading {
-    font-weight: 800;
+  /* Single small line: "Created by cybrrbee · Credits ▸" which expands on click */
+  .credits-summary {
     font-size: 10px;
-    color: #5c3200;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 4px;
-  }
-  .credits-list {
-    list-style: none;
+    font-weight: 700;
+    color: rgba(92,50,0,0.65);
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    cursor: default;
   }
-  .credits-list li {
-    font-size: 10.5px;
-    font-weight: 600;
-    color: #5c3200;
-    line-height: 1.55;
+  .credits-summary a {
+    color: inherit;
+    text-decoration: none;
   }
-  .credits-list a {
-    color: #5c3200;
+  .credits-toggle {
+    background: none;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(92,50,0,0.65);
+    cursor: pointer;
+    padding: 0;
     text-decoration: underline;
     text-underline-offset: 1px;
   }
-  .credits-list a:hover { color: #000; }
-  .credits-list a {
-    color: #5c3200;
+  .credits-toggle:hover { color: #5c3200; }
+
+  /* Expanded detail — hidden by default */
+  .credits-detail {
+    display: none;
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(92,50,0,0.75);
+    line-height: 1.6;
+  }
+  .credits-detail.open { display: block; }
+  .credits-detail a {
+    color: rgba(92,50,0,0.85);
     text-decoration: underline;
     text-underline-offset: 1px;
   }
-  .credits-list a:hover { color: #000; }
-  .credits-thanks {
-    margin-top: 4px;
-    font-size: 10.5px;
-    font-weight: 600;
-    color: #5c3200;
-    font-style: italic;
-  }
+  .credits-detail a:hover { color: #000; }
+  .credits-detail p { margin-top: 3px; font-style: italic; }
 </style>
 </head>
 <body>
@@ -387,16 +401,19 @@
 </div>
 
 <footer class="credits" aria-label="Credits">
-  <p class="credits-byline">Created by cybrrbee</p>
-  <p class="credits-heading">Credits</p>
-  <ul class="credits-list">
-    <li><a href="https://www.reddit.com/r/tomodachilife/comments/1s3y1vf/new_personality_chartguide_for_ltd/" target="_blank" rel="noopener">NEW Personality Chart/Guide for LTD</a> by <a href="https://www.reddit.com/user/PuppyGoji7604/" target="_blank" rel="noopener">u/PuppyGoji7604</a> &amp; <a href="https://www.reddit.com/user/Sparkle-P/" target="_blank" rel="noopener">u/Sparkle-P</a></li>
-    <li><a href="https://www.reddit.com/r/tomodachilife/comments/1s5be9p/personality_guide_charts_us_and_eu/" target="_blank" rel="noopener">Personality Guide Charts (US and EU)</a> by <a href="https://www.reddit.com/user/Mental-Autopsy/" target="_blank" rel="noopener">u/Mental-Autopsy</a></li>
-    <li><a href="https://gamefaqs.gamespot.com/3ds/643013-tomodachi-life/map/11698-personality-calculator" target="_blank" rel="noopener">Tomodachi Life – Guides and FAQs</a> by <a href="https://gamefaqs.gamespot.com/community/reinseiun" target="_blank" rel="noopener">reinseiun</a></li>
-    <li><a href="https://www.youtube.com/watch?v=bmTRX1X6ndE" target="_blank" rel="noopener">How To Get All 16 Personalities In Tomodachi Life: Living The Dream</a> by <a href="https://www.youtube.com/@CrossingChannel" target="_blank" rel="noopener">@CrossingChannel</a></li>
-    <li><a href="https://www.youtube.com/watch?v=VmdDA5ISvv8" target="_blank" rel="noopener">How To Get ALL 16 Personalities in Tomodachi Life: Living The Dream! (American Version)</a> by <a href="https://www.youtube.com/@KawaiiBeth" target="_blank" rel="noopener">@KawaiiBeth</a></li>
-  </ul>
-  <p class="credits-thanks">Special thanks to Pearl &amp; Hugh Morris 🩵</p>
+  <div class="credits-summary">
+    <span>Created by cybrrbee</span>
+    <span>·</span>
+    <button class="credits-toggle" aria-expanded="false" aria-controls="creditsDetail" onclick="const d=document.getElementById('creditsDetail');const open=d.classList.toggle('open');this.setAttribute('aria-expanded',open);this.textContent=open?'Credits ▴':'Credits ▾';">Credits ▾</button>
+  </div>
+  <div class="credits-detail" id="creditsDetail">
+    <div><a href="https://www.reddit.com/r/tomodachilife/comments/1s3y1vf/new_personality_chartguide_for_ltd/" target="_blank" rel="noopener">NEW Personality Chart/Guide for LTD</a> by <a href="https://www.reddit.com/user/PuppyGoji7604/" target="_blank" rel="noopener">u/PuppyGoji7604</a> &amp; <a href="https://www.reddit.com/user/Sparkle-P/" target="_blank" rel="noopener">u/Sparkle-P</a></div>
+    <div><a href="https://www.reddit.com/r/tomodachilife/comments/1s5be9p/personality_guide_charts_us_and_eu/" target="_blank" rel="noopener">Personality Guide Charts (US and EU)</a> by <a href="https://www.reddit.com/user/Mental-Autopsy/" target="_blank" rel="noopener">u/Mental-Autopsy</a></div>
+    <div><a href="https://gamefaqs.gamespot.com/3ds/643013-tomodachi-life/map/11698-personality-calculator" target="_blank" rel="noopener">Tomodachi Life – Guides and FAQs</a> by <a href="https://gamefaqs.gamespot.com/community/reinseiun" target="_blank" rel="noopener">reinseiun</a></div>
+    <div><a href="https://www.youtube.com/watch?v=bmTRX1X6ndE" target="_blank" rel="noopener">How To Get All 16 Personalities In Tomodachi Life: Living The Dream</a> by <a href="https://www.youtube.com/@CrossingChannel" target="_blank" rel="noopener">@CrossingChannel</a></div>
+    <div><a href="https://www.youtube.com/watch?v=VmdDA5ISvv8" target="_blank" rel="noopener">How To Get ALL 16 Personalities in Tomodachi Life: Living The Dream! (American Version)</a> by <a href="https://www.youtube.com/@KawaiiBeth" target="_blank" rel="noopener">@KawaiiBeth</a></div>
+    <p>Special thanks to Pearl &amp; Hugh Morris 🩵</p>
+  </div>
 </footer>
 
 <script>
