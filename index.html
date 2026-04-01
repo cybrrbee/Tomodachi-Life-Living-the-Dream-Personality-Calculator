@@ -36,16 +36,27 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Centre content vertically only on desktop */
-    justify-content: center;
+    justify-content: space-between;
     background: var(--page-bg);
     font-family: 'Nunito', sans-serif;
     padding: clamp(16px, 4vw, 32px) clamp(14px, 4vw, 28px);
-    gap: clamp(10px, 2.5vw, 14px);
+    gap: 0;
   }
-  /* On small screens don't force vertical centering — just stack from top */
+
+  /* Main content grows to fill available space and centres its children */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: clamp(10px, 2.5vw, 14px);
+    padding-bottom: clamp(10px, 2vw, 16px);
+  }
+  /* On very short/narrow screens, don't force vertical centering */
   @media (max-height: 700px), (max-width: 480px) {
-    body { justify-content: flex-start; }
+    .main-content { justify-content: flex-start; }
   }
 
   h1 {
@@ -339,7 +350,6 @@
     width: 100%;
     max-width: 560px;
     padding: 8px 4px 4px;
-    margin-top: auto;
     border-top: 1px solid rgba(92,50,0,0.18);
   }
 
@@ -393,6 +403,7 @@
 </head>
 <body>
 
+<main class="main-content">
 <h1>
   <span class="line1">Tomodachi Life: Living the Dream</span>
   <span class="line2">Personality Calculator</span>
@@ -403,6 +414,7 @@
 <div class="result-area" id="resultArea" aria-live="polite">
   <div class="prompt-card">Select a value in each row to see your Mii's personality!</div>
 </div>
+</main>
 
 <footer class="credits" aria-label="Credits">
   <div class="credits-summary">
